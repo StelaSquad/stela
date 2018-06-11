@@ -61,7 +61,7 @@ class Triangulate():
     
     def gen_mock(self,loc=[],errs=[0,0]):
         """
-        Generates a mock triangulation data set, to test the program.
+        Generates a mock f data set, to test the program.
                 
         Optional:
             ------

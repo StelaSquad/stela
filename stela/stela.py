@@ -11,6 +11,9 @@ import ephem
 
 from astropy.table import Table, vstack
 
+__PATH = os.path.dirname(os.path.realpath(__file__))
+DATA_PATH = os.path.join(__PATH, "data")
+
 class STELA():
     """
     Class that governs the alignment of telescope, star positions, catalogs, and star identification
@@ -41,7 +44,7 @@ class STELA():
     """
     
     def __init__(self):
-        self.DATA_DIREC = "./data"
+        self.DATA_DIREC = DATA_PATH
         self.simbad = Simbad()
         self.simbad.TIMEOUT = 1000000
         self.simbad.remove_votable_fields('coordinates')
@@ -487,7 +490,7 @@ class STELA():
                         break
         
         # Convert to earth altaz frame
-        altaz_calib = [self.Transform.cel2altaz(c, self.location) for c in coors]
+        altaz_calib = [self.Transform.cel2altaz(c, self.location)[0] for c in coors]
         
         # set class objects
         self.altaz_calib = altaz_calib
@@ -511,7 +514,7 @@ class STELA():
         v = np.array(self.cel_calib)
         
         # Triangulate using the triangulation class (nested in try:except for safety)
-        loc, self.loc_errs = self.triangulation_class.triangulate(v[0],v[1],v[2], v2_v1,v3_v2, 
+        loc, self.loc_errs = self.__triangulation_class.triangulate(v[0],v[1],v[2], v2_v1,v3_v2, 
                                                                 iterations=iterations,verbose=verbose)
 
 
