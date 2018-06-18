@@ -2,13 +2,13 @@ from transform import Transform
 from triangulate import Triangulate
 
 import numpy as np
-from astroquery.simbad import Simbad
 import urllib2
 import os
 import serial
 import utils
 import ephem
 
+from astroquery.simbad import Simbad
 from astropy.table import Table, vstack
 
 __PATH = os.path.dirname(os.path.realpath(__file__))
@@ -55,7 +55,7 @@ class STELA():
 
         self.Transform = Transform()
     
-    def setup_cats(self,reset_cats=False):
+    def setup_cats(self, reset_cats=False):
         """ 
         Sets up the necessary catalogs, prints them to a file. (No parameters)
         
@@ -256,6 +256,8 @@ class STELA():
         if len(matches) > 0:
             ind = scores.index(max(scores))
             result = matches[ind]
+        else:
+            result = None
 
         """
         NEED PLANET SEARCHING
@@ -265,7 +267,7 @@ class STELA():
         if self.__online == True and type(result) == type(None):
             result = self.simbad.query_object(string)
 
-        if type(result) == type(None):
+        if isinstance(result, type(None)):
             return {"Error":"No object found"}
 
         if list_results == False or len(result) == 1:
@@ -344,11 +346,21 @@ class STELA():
         # Add right ascencion and declination information
         data["ra"] = "%s hrs" % ra
         data["dec"] = "%s deg" % dec
-        
+        data["celcoor"] = [utils.hourangle(ra), utils.degree(dec)]
+        if "location" in dir(self):
+            loc = self.location
+        if "home" in dir(self):
+            loc = self.home
 
+        altaz = self.Transform.cel2altaz(data["celcoor"], loc)[0]
+        data["altaz"] = altaz
+        data["az"] = "%.2f deg" % altaz[0]
+        data["alt"] = "%.2f deg" % altaz[1]
+        
         # This is for a string with all of the information. Goes down the list, if a key exists, adds 
         # infomation to string. Useful for displaying everything easily.
-        order = ["Name", "Otype", "ra", "dec", "Mag", "Distance", "Sptype", "Luminosity", "Redshift"]
+        order = ["Name", "Otype", "ra", "dec", "az", "alt",
+                "Mag", "Distance", "Sptype", "Luminosity", "Redshift"]
 
         outstring = ''
         for key in order:
